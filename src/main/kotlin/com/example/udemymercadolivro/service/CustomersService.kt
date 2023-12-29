@@ -1,21 +1,34 @@
 package com.example.udemymercadolivro.service
 
 import com.example.udemymercadolivro.model.Customer
+import com.example.udemymercadolivro.repository.CustomerRepository
 import org.springframework.stereotype.Service
 
 @Service
-class CustomersService {
+class CustomersService(
+    val customerRepository: CustomerRepository
+) {
     private val customersList = mutableListOf<Customer>()
+
+    fun createNewCustomer(newCustomerDto: Customer): Boolean {
+        return try {
+            customerRepository.save(createNewCustomerObject(newCustomerDto))
+            true
+        } catch (t: Throwable) {
+            println("Fail to save customer $newCustomerDto")
+            false
+        }
+    }
 
     fun getCustomers(filterName: String?): List<Customer> {
         filterName?.let { customerName ->
             return filterCustomersListByName(customerName = customerName)
         }
-        return customersList
+        return customerRepository.findAll().toList()
     }
 
     fun getCustomerById(customerId: Int): Customer {
-        return filterCustomerById(customerId = customerId)
+        return customerRepository.findById(customerId).orElseThrow()
     }
 
     fun updateCustomer(customerId: Int, customerUpdated: Customer): String {
@@ -42,16 +55,6 @@ class CustomersService {
             customersList.remove(userToDelete)
             true
         } catch (t: Throwable) {
-            false
-        }
-    }
-
-    fun createNewCustomer(newCustomerDto: Customer): Boolean {
-        return try {
-            customersList.add(createNewCustomerObject(newCustomerDto))
-            true
-        } catch (t: Throwable) {
-            println("Fail to save customer $newCustomerDto")
             false
         }
     }
